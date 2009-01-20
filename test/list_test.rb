@@ -32,9 +32,17 @@ class ListMixin < Mixin
   acts_as_list :column => "pos", :scope => :parent
 
   def self.table_name() "mixins" end
+    
+  attr_accessor :before_save_triggered
+  before_save :log_before_save
+
+  def log_before_save
+    self.before_save_triggered = true
+  end
 end
 
 class ListMixinSub1 < ListMixin
+
 end
 
 class ListMixinSub2 < ListMixin
@@ -219,7 +227,14 @@ class ListTest < Test::Unit::TestCase
     assert_equal 1, ListMixin.find(1).pos
     assert_equal 2, ListMixin.find(3).pos
     assert_equal 3, ListMixin.find(4).pos
-  end 
+  end
+  
+  def test_should_not_trigger_unexpected_callbacks_on_destroy
+    element = ListMixin.find(2)
+    assert !element.before_save_triggered
+    element.destroy
+    assert !element.before_save_triggered
+  end
   
 end
 
